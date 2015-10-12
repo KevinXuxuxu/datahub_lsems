@@ -1,0 +1,24 @@
+{% extends "minimal-layout.html" %}
+{% block headlink-right %}
+  <a href="/account/register" title="Sign In" class="btn btn-success navbar-btn">Sign Up</a>
+{% endblock %}
+{% block content %}
+<div class="container">
+<form class="form-signin" role="form" method="POST" action="/account/login">
+  {% csrf_token %}
+  <input type="hidden" name="redirect_url" value="{{redirect_url}}" />
+  <h3>Returning User -- Sign in</h3>
+  <div id="error">
+    {% for error in errors %}
+      <span class="error">{% autoescape off %}{{error}}{% endautoescape %}</span><br />
+    {% endfor %}
+  </div>
+  <br />
+  <label for="login_id">Username or Email</label><br />
+  <input type="text" class="form-control" name="login_id" id="login_id" placeholder="Your email address" {% if values.login_id %}value="{{values.login_id}}"{% endif %}/><br />
+  <label for="password">Password</label><br />
+  <input type="password" class="form-control" name="login_password" id="login_password" placeholder="Your password" {% if values.login_password %}value="{{values.login_password}}"{% endif %}/><br />
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign In</button>
+</form>
+</div>
+{% endblock %}

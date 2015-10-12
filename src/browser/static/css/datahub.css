@@ -1,0 +1,293 @@
+/*
+@author: Anant Bhardwaj
+@date: 08/11/2012
+*/
+
+body {
+  padding-bottom: 60px;
+}
+
+/* Logo */
+
+#logo{
+  color: #000;
+  font-family: 'Cantora One', cursive;
+  font-weight: 400;
+  font-size: 2em;
+}
+
+@font-face {
+  font-family: 'Cantora One';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Cantora One'), local('CantoraOne-Regular'), url(/static/fonts/cantoraone.woff) format('woff');
+}
+
+
+/* Sign In/Sign Up/Password Reset Forms */
+
+.push {
+  height: 80px;
+  min-height: 80px;
+}
+
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+  margin-bottom: 10px;
+}
+.form-signin .checkbox {
+  font-weight: normal;
+}
+.form-signin .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+
+/* GLOBAL */
+
+#page{
+	position: relative;
+	margin:0 auto;
+  margin-top: 70px;
+}
+
+textarea {
+  resize: none;
+}
+
+.error{
+  color: red;	
+}
+
+.cell-left {
+  vertical-align: top;
+  padding-top:0.5em;
+  padding-bottom:0.5em;"
+}
+
+.cell-right {
+  vertical-align: top;
+  padding-left:2em;
+  padding-top:0.5em;
+  padding-bottom:0.5em;"
+}
+
+p.bg-warning {
+  padding: 10px;
+}
+
+.inline-block {
+    margin: 0;
+    display:inline-block;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.table-responsive {
+  overflow: auto;
+}
+
+.modal-link {
+  cursor: pointer;
+}
+
+.table thead tr th {
+    background-color: #f9f9f9;
+    color: #000;
+}
+
+/* DataHub Console */
+
+#dh-console-container {
+  margin: 0 auto;
+  padding-top: 1em;
+  padding-bottom: 1em;
+  position: relative;
+}
+
+#dh-console {
+  margin: 0 auto;
+  height: 40em;
+  color: #E9E581;
+  background-color: #000;
+  border-radius: 0.5em;
+  overflow-y: scroll !important;
+  box-shadow: 0px 5px 20px #333;
+}
+
+.ascii-art-home {
+  color: #E9E581;
+  background-color: #000;
+  border: none;
+}
+
+.ascii-art-console {
+  color: #666;
+  background-color: #000;
+  border: none;
+}
+
+#welcome {
+  margin:0 auto;
+  background-color:#000;
+  border-radius: 1.5em;
+  color: #FFF;
+  padding:3em;
+  padding-bottom: 4em;
+  text-align:center;
+  box-shadow: 0px 5px 5px #eee;
+}
+
+#dh-console .punch, #welcome .punch {
+  color: #999;
+}
+
+/* Icons */
+.newrepo-icon{
+  display: inline-block;
+  background-image:url(/static/images/newrepo.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.csv-icon{
+  display: inline-block;
+  background-image:url(/static/images/csv.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.open-icon{
+  display: inline-block;
+  background-image:url(/static/images/open.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.download-icon{
+  display: inline-block;
+  background-image:url(/static/images/download.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.delete-icon{
+  display: inline-block;
+  background-image:url(/static/images/delete.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.database-icon{
+  display: inline-block;
+  background-image:url(/static/images/database.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.table-icon{
+  display: inline-block;
+  background-image:url(/static/images/table.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.database-table-icon{
+  display: inline-block;
+  background-image:url(/static/images/database-table.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.console-icon{
+  display: inline-block;
+  background-image:url(/static/images/terminal.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  width: 17px;
+  height: 17px;
+}
+
+.visualize-icon{
+  display: inline-block;
+  background-image:url(/static/images/visualize.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.logout-icon{
+  display: inline-block;
+  background-image:url(/static/images/logout.png);
+  background-repeat: no-repeat;
+  background-size: 17px 17px;
+  border-radius: 0.25em;
+  width: 17px;
+  height: 17px;
+}
+
+.logo-home{
+  display: block;
+  background-image:url(/static/images/livinglab-logo.png);
+  background-repeat: no-repeat;
+  background-size: 200px 200px;
+  width: 200px;
+  height: 200px;
+}
+
+.logo-text {
+  font-family: 'Cantora One', cursive;
+  font-weight: 400;
+  font-size: 44px;
+}
