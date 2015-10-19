@@ -73,6 +73,8 @@ urlpatterns = patterns('',
     url(r'^browse/(\w+)/(\w+)/dashboards/?$', 'browser.views.repo_dashboards'),
 
     url(r'^browse/(\w+)/?$', 'browser.views.user'),
+
+    url(r'^browse/(\w+)/(\w+)/results/?$', 'browser.views.repo_results'),
     #### End Browse ####
 
 
