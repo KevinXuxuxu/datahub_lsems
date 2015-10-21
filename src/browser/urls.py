@@ -73,6 +73,8 @@ urlpatterns = patterns('',
     url(r'^browse/(\w+)/(\w+)/dashboards/?$', 'browser.views.repo_dashboards'),
 
     url(r'^browse/(\w+)/?$', 'browser.views.user'),
+
+    url(r'^browse/(\w+)/(\w+)/results/?$', 'browser.views.repo_results'),
     #### End Browse ####
 
 
@@ -121,7 +123,7 @@ urlpatterns = patterns('',
     ### Developer Apps ###
     url(r'^developer/apps/?$', 'browser.views.apps'),
 
-    url(r'^developer/apps/register/?$', 'browser.views.apps_register'),
+    url(r'^developer/apps/register/?$', 'browser.views.app_register'),
 
     url(r'^developer/apps/remove/(\w+)/?$', 'browser.views.app_remove'),
     ### End Apps ###
