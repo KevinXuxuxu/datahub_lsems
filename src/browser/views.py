@@ -521,6 +521,87 @@ def table(request, repo_base, repo, table):
         content_type="application/json")
 
 @login_required
+def result(request, repo_base, repo, table):
+  try:
+    login = get_login(request)
+    dh_table_name = '%s.%s.%s' %(repo_base, repo, table)
+
+    '''
+    res = DataHubManager.has_table_privilege(
+        login, repo_base, dh_table_name, 'SELECT')
+
+    if not (res and res['tuples'][0][0]):
+      raise Exception('Access denied. Missing required privileges.')
+
+    '''
+    manager = DataHubManager(user=repo_base)
+    res = manager.execute_sql(
+        query='EXPLAIN SELECT * FROM %s' %(dh_table_name))
+
+    limit = 50
+
+    num_rows = re.match(r'.*rows=(\d+).*', res['tuples'][0][0]).group(1)
+    count = int(num_rows)
+
+    total_pages = 1 + (int(count) / limit)
+
+    current_page = 1
+    try:
+      current_page = int(request.REQUEST['page'])
+    except:
+      pass
+
+    if current_page < 1:
+      current_page = 1
+
+    start_page = current_page - 5
+    if start_page < 1:
+      start_page = 1
+
+    end_page = start_page + 10
+
+    if end_page > total_pages:
+      end_page = total_pages
+
+    print "-------------"
+    res = manager.execute_sql(
+        query='SELECT * from %s LIMIT %s OFFSET %s'
+        %(dh_table_name, limit, (current_page -1) * limit))
+
+    column_names = [field['name'] for field in res['fields']]
+    tuples = res['tuples']
+
+    annotation_text = None
+    url_path = '/browse/%s/%s/table/%s' %(repo_base, repo, table)
+    try:
+      annotation = Annotation.objects.get(url_path=url_path)
+      annotation_text = annotation.annotation_text
+    except:
+      pass
+
+    data = {
+        'login': get_login(request),
+        'repo_base': repo_base,
+        'repo': repo,
+        'table': table,
+        'column_names': column_names,
+        'tuples': tuples,
+        'annotation': annotation_text,
+        'current_page': current_page,
+        'next_page': current_page + 1,
+        'prev_page': current_page - 1,
+        'url_path': url_path,
+        'total_pages': total_pages,
+        'pages': range(start_page, end_page + 1)}
+
+    data.update(csrf(request))
+    return render_to_response("result-browse.html", data)
+  except Exception, e:
+    return HttpResponse(json.dumps(
+        {'error': str(e)}),
+        content_type="application/json")
+
+@login_required
 def table_export(request, repo_base, repo, table_name):
   try:
     login = get_login(request)

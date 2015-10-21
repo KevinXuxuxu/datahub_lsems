@@ -56,6 +56,8 @@ urlpatterns = patterns('',
     #### Browse ####
     url(r'^browse/(\w+)/(\w+)/table/(\w+)/?$', 'browser.views.table'),
 
+    url(r'^browse/(\w+)/(\w+)/result/(\w+)/?$', 'browser.views.result'),
+
     url(r'^browse/(\w+)/(\w+)/query/?$', 'browser.views.query'),
 
     url(r'^browse/(\w+)/(\w+)/card/(.+)/?$', 'browser.views.card'),
