@@ -189,9 +189,7 @@ def repo_tables(request, repo_base, repo):
 
     # get base_tables for a given repo
     res = manager.list_tables(repo)
-    base_tables = [t[0] for t in res['tuples']]
-    print type(base_tables)
-    print base_tables
+    base_tables = [t[0] for t in res['tuples'] if not t[0].startswith('res')]
 
     # get views for a given repo
     res = manager.list_views(repo)
