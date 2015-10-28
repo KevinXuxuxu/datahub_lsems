@@ -17,7 +17,7 @@
 {#      <a class="btn btn-default btn-sm" href="/browse/{{repo_base}}/{{repo}}/files" title="Create a New Table"><span class="glyphicon glyphicon-plus"></span></a>#}
     </span>
   </div>
-  
+
   {% if base_tables and base_tables|length > 0 %}
     <div class="table-responsive">
       <table class="table">
@@ -27,7 +27,7 @@
             <td>
               <a href="/browse/{{repo_base}}/{{repo}}/result/{{base_table}}">{{base_table}}</a>
             </td>
-            
+
             <td class="text-right">
               <span
                   class="modal-link modal-confirm-dialog"
@@ -39,7 +39,7 @@
                   title="CSV Export">
                 <span class="csv-icon"></span>
               </span>&nbsp;&nbsp;
-              
+
               <span
                   class="modal-link modal-confirm-dialog"
                   target-modal="#confirm-modal"
@@ -53,13 +53,13 @@
             </td>
           </tr>
           {% endfor %}
-          
+
           {% for view in views %}
           <tr>
             <td>
               <a href="/browse/{{repo_base}}/{{repo}}/result/{{view}}">{{view}}</a>
             </td>
-            
+
             <td class="text-right">
               <span
                   class="modal-link modal-confirm-dialog"
@@ -71,7 +71,7 @@
                   title="CSV Export">
                 <span class="csv-icon"></span>
               </span>&nbsp;&nbsp;
-              
+
               <span
                   class="modal-link modal-confirm-dialog"
                   target-modal="#confirm-modal"
@@ -89,12 +89,7 @@
       </table>
     </div>
   {% else %}
-    <p class="bg-warning">No result in <strong>{{repo_base}}.{{repo}}</strong></p>
+    <p class="bg-warning">No result in <strong>{{repo_base}}/{{repo}}</strong></p>
   {% endif %}
 </div>
 {% endblock %}
-
-
-
-
-
