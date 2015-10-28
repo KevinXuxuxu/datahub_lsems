@@ -66,12 +66,12 @@ def service_core_binary(request):
     oprot = TBinaryProtocol.TBinaryProtocol(TMemoryBuffer())
     core_processor.process(iprot, oprot)
     resp = HttpResponse(oprot.trans.getvalue())
-    
+
     try:
       resp['Access-Control-Allow-Origin'] = request.META['HTTP_ORIGIN']
     except:
       pass
-    
+
     return resp
   except Exception, e:
     return HttpResponse(
@@ -85,7 +85,7 @@ def service_account_binary(request):
     oprot = TBinaryProtocol.TBinaryProtocol(TMemoryBuffer())
     account_processor.process(iprot, oprot)
     resp = HttpResponse(oprot.trans.getvalue())
-    
+
     try:
       resp['Access-Control-Allow-Origin'] = request.META['HTTP_ORIGIN']
     except:
@@ -106,12 +106,12 @@ def service_core_json(request):
     resp = HttpResponse(
         oprot.trans.getvalue(),
         content_type="application/json")
-    
+
     try:
       resp['Access-Control-Allow-Origin'] = request.META['HTTP_ORIGIN']
     except:
       pass
-    
+
     return resp
   except Exception, e:
     return HttpResponse(
@@ -137,7 +137,7 @@ def user(request, repo_base):
     repos = [t[0] for t in res['tuples']]
 
     visible_repos = []
-    
+
     for repo in repos:
       res = manager.list_collaborators(repo_base, repo)
 
@@ -155,12 +155,12 @@ def user(request, repo_base):
           'collaborators_str': ', '.join(collaborators),
           'num_collaborators': len(collaborators)
       })
-    
+
     return render_to_response("user-browse.html", {
         'login': get_login(request),
         'repo_base': repo_base,
-        'repos': visible_repos})    
-  
+        'repos': visible_repos})
+
   except Exception, e:
     return HttpResponse(json.dumps(
         {'error': str(e)}),
@@ -184,27 +184,29 @@ def repo_tables(request, repo_base, repo):
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'USAGE')
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
-    
+
     manager = DataHubManager(user=repo_base)
-    
+
     # get base_tables for a given repo
     res = manager.list_tables(repo)
     base_tables = [t[0] for t in res['tuples']]
+    print type(base_tables)
+    print base_tables
 
     # get views for a given repo
     res = manager.list_views(repo)
     views = [t[0] for t in res['tuples']]
-    
+
     res = {
         'login': get_login(request),
         'repo_base': repo_base,
         'repo': repo,
         'base_tables': base_tables,
         'views': views}
-    
+
     res.update(csrf(request))
     return render_to_response("repo-browse-tables.html", res)
-  
+
   except Exception, e:
     return HttpResponse(json.dumps(
         {'error': str(e)}),
@@ -256,18 +258,18 @@ def repo_files(request, repo_base, repo):
     repo_dir = '/user_data/%s/%s' %(repo_base, repo)
     if not os.path.exists(repo_dir):
       os.makedirs(repo_dir)
-    
+
     uploaded_files = [f for f in os.listdir(repo_dir)]
-    
+
     res = {
         'login': get_login(request),
         'repo_base': repo_base,
         'repo': repo,
         'files': uploaded_files}
-    
+
     res.update(csrf(request))
     return render_to_response("repo-browse-files.html", res)
-  
+
   except Exception, e:
     return HttpResponse(json.dumps(
         {'error': str(e)}),
@@ -284,18 +286,18 @@ def repo_cards(request, repo_base, repo):
 
     cards = Card.objects.all().filter(
         repo_base=repo_base, repo_name=repo)
-    
+
     cards = [c.card_name for c in cards]
-    
+
     res = {
         'login': get_login(request),
         'repo_base': repo_base,
         'repo': repo,
         'cards': cards}
-    
+
     res.update(csrf(request))
     return render_to_response("repo-browse-cards.html", res)
-  
+
   except Exception, e:
     return HttpResponse(json.dumps(
         {'error': str(e)}),
@@ -309,16 +311,16 @@ def repo_dashboards(request, repo_base, repo):
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'USAGE')
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
-    
+
     res = {
         'login': get_login(request),
         'repo_base': repo_base,
         'repo': repo,
         'dashboards': []}
-    
+
     res.update(csrf(request))
     return render_to_response("repo-browse-dashboards.html", res)
-  
+
   except Exception, e:
     return HttpResponse(json.dumps(
         {'error': str(e)}),
@@ -344,7 +346,7 @@ def repo_create(request, repo_base):
       res = {'repo_base': repo_base, 'login':login}
       res.update(csrf(request))
       return render_to_response("repo-create.html", res)
-  
+
   except Exception, e:
     return HttpResponse(json.dumps(
         {'error': str(e)}),
@@ -374,13 +376,13 @@ def repo_settings(request, repo_base, repo):
   try:
     login = get_login(request)
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'CREATE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
-    
+
     manager = DataHubManager(user=repo_base)
     res = manager.list_collaborators(repo_base, repo)
-    
+
     collaborators = [(c[0].split('=')[0]).strip() for c in res['tuples']]
     collaborators = filter(lambda x: x!='' and x!=repo_base, collaborators)
 
@@ -401,10 +403,10 @@ def repo_collaborators_add(request, repo_base, repo):
   try:
     login = get_login(request)
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'CREATE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
-    
+
     username = request.POST['collaborator_username']
     manager = DataHubManager(user=repo_base)
     manager.add_collaborator(
@@ -421,10 +423,10 @@ def repo_collaborators_remove(request, repo_base, repo, username):
   try:
     login = get_login(request)
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'CREATE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
-    
+
     manager = DataHubManager(user=repo_base)
     manager.delete_collaborator(repo, username)
     return HttpResponseRedirect('/settings/%s/%s' %(repo_base, repo))
@@ -444,24 +446,24 @@ def table(request, repo_base, repo, table):
   try:
     login = get_login(request)
     dh_table_name = '%s.%s.%s' %(repo_base, repo, table)
-    
-    ''' 
+
+    '''
     res = DataHubManager.has_table_privilege(
         login, repo_base, dh_table_name, 'SELECT')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
 
     '''
     manager = DataHubManager(user=repo_base)
     res = manager.execute_sql(
-        query='EXPLAIN SELECT * FROM %s' %(dh_table_name))    
-      
+        query='EXPLAIN SELECT * FROM %s' %(dh_table_name))
+
     limit = 50
-    
+
     num_rows = re.match(r'.*rows=(\d+).*', res['tuples'][0][0]).group(1)
-    count = int(num_rows)    
-      
+    count = int(num_rows)
+
     total_pages = 1 + (int(count) / limit)
 
     current_page = 1
@@ -478,15 +480,15 @@ def table(request, repo_base, repo, table):
       start_page = 1
 
     end_page = start_page + 10
-    
+
     if end_page > total_pages:
       end_page = total_pages
-    
-    print "-------------"  
+
+    print "-------------"
     res = manager.execute_sql(
         query='SELECT * from %s LIMIT %s OFFSET %s'
         %(dh_table_name, limit, (current_page -1) * limit))
-    
+
     column_names = [field['name'] for field in res['fields']]
     tuples = res['tuples']
 
@@ -606,15 +608,15 @@ def table_export(request, repo_base, repo, table_name):
   try:
     login = get_login(request)
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'CREATE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
-    
+
     repo_dir = '/user_data/%s/%s' %(repo_base, repo)
-    
+
     if not os.path.exists(repo_dir):
       os.makedirs(repo_dir)
-    
+
     file_path = '%s/%s.csv' %(repo_dir, table_name)
     dh_table_name = '%s.%s.%s' %(repo_base, repo, table_name)
     DataHubManager.export_table(
@@ -631,15 +633,15 @@ def table_delete(request, repo_base, repo, table_name):
   try:
     login = get_login(request)
     dh_table_name = '%s.%s.%s' %(repo_base, repo, table_name)
-    
+
     res = DataHubManager.has_table_privilege(
         login, repo_base, dh_table_name, 'DELETE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
 
     manager = DataHubManager(user=repo_base)
-    
+
     query = '''DROP TABLE %s''' %(dh_table_name)
     manager.execute_sql(query=query)
     return HttpResponseRedirect('/browse/%s/%s' %(repo_base, repo))
@@ -658,7 +660,7 @@ def file_save(repo_base, repo, data_file):
   repo_dir = '/user_data/%s/%s' %(repo_base, repo)
   if not os.path.exists(repo_dir):
     os.makedirs(repo_dir)
-  
+
   file_name = '%s/%s' %(repo_dir, data_file.name)
   with open(file_name, 'wb+') as destination:
     for chunk in data_file.chunks():
@@ -666,9 +668,9 @@ def file_save(repo_base, repo, data_file):
 
 @login_required
 def file_upload(request, repo_base, repo):
-  try:    
+  try:
     data_file = request.FILES['data_file']
-    file_save(repo_base, repo, data_file)    
+    file_save(repo_base, repo, data_file)
     return HttpResponseRedirect('/browse/%s/%s/files' %(repo_base, repo))
   except Exception, e:
     return HttpResponse(
@@ -681,22 +683,22 @@ def file_import(request, repo_base, repo, file_name):
   try:
     login = get_login(request)
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'CREATE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
-    
-    delimiter = str(request.GET['delimiter'])    
+
+    delimiter = str(request.GET['delimiter'])
     if delimiter == '':
       delimiter = str(request.GET['other_delimiter'])
-    
+
     header = True if request.GET['has_header'] == "true" else False
-    
+
     quote_character = request.GET['quote_character']
     if quote_character == '':
       quote_character = request.GET['other_quote_character']
 
     delimiter = delimiter.decode('string_escape')
-    
+
     repo_dir = '/user_data/%s/%s' %(repo_base, repo)
     file_path = '%s/%s' %(repo_dir, file_name)
     table_name, _ = os.path.splitext(file_name)
@@ -707,19 +709,19 @@ def file_import(request, repo_base, repo, file_name):
 
     data = csv.reader(f, delimiter=delimiter)
     cells = data.next()
-    
+
     columns = [clean_str(str(i), 'col') for i in range(0, len(cells))]
     if header:
       columns = map(lambda x: clean_str(x, 'col'), cells)
-    
+
     columns = rename_duplicates(columns)
-    
+
     query = 'CREATE TABLE %s (%s text' % (dh_table_name, columns[0])
 
     for i in range(1, len(columns)):
       query += ', %s %s' %(columns[i], 'text')
     query += ')'
-    
+
     manager = DataHubManager(user=repo_base)
     manager.execute_sql(query=query)
     manager.import_file(
@@ -741,7 +743,7 @@ def file_delete(request, repo_base, repo, file_name):
   try:
     login = get_login(request)
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'CREATE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
 
@@ -772,7 +774,7 @@ def file_download(request, repo_base, repo, file_name):
 
 
 '''
-Query 
+Query
 '''
 @login_required
 def query(request, repo_base, repo):
@@ -786,16 +788,16 @@ def query(request, repo_base, repo):
         'query': None}
 
     data.update(csrf(request))
-    
+
     if 'q' in request.REQUEST:
       query = request.REQUEST['q']
       query = query.strip().rstrip(';')
-    
+
       manager = DataHubManager(user=repo_base)
 
       select_query = False
       if (query.split()[0]).lower() == 'select':
-        select_query = True    
+        select_query = True
 
       count = 0
       limit = 50
@@ -803,8 +805,8 @@ def query(request, repo_base, repo):
       if select_query:
         res = manager.execute_sql(query='EXPLAIN %s' %(query))
         num_rows = re.match(r'.*rows=(\d+).*', res['tuples'][0][0]).group(1)
-        count = int(num_rows)   
-      
+        count = int(num_rows)
+
       total_pages = 1 + (int(count) / limit)
 
       current_page = 1
@@ -821,22 +823,22 @@ def query(request, repo_base, repo):
         start_page = 1
 
       end_page = start_page + 10
-      
+
       if end_page > total_pages:
         end_page = total_pages
       db_query = query
 
       if select_query:
         # wrap query in another select statement, to allow the
-        # user's LIMIT statements to still work     
-        db_query = 'select * from (' + query + ') as BXCQWVPEMWVKFBEBNKZSRPYBSB'        
+        # user's LIMIT statements to still work
+        db_query = 'select * from (' + query + ') as BXCQWVPEMWVKFBEBNKZSRPYBSB'
 
         # wrap in datahub limit and offset statements, to support pagination
         db_query = '%s LIMIT %s OFFSET %s' %(
             db_query, limit, (current_page -1) * limit)
-      
+
       res = manager.execute_sql(query=db_query)
-      
+
       if select_query or res['row_count'] > 0:
         column_names = [field['name'] for field in res['fields']]
         tuples = res['tuples']
@@ -856,7 +858,7 @@ def query(request, repo_base, repo):
           'next_page': current_page + 1,
           'prev_page': current_page - 1,
           'total_pages': total_pages,
-          'pages': range(start_page, end_page + 1)})    
+          'pages': range(start_page, end_page + 1)})
       return render_to_response("query-browse-results.html", data)
     else:
       return render_to_response("query.html", data)
@@ -873,10 +875,10 @@ Annotations
 
 @login_required
 def create_annotation(request):
-  try:    
+  try:
     url = request.POST['url']
     annotation_text = request.POST['annotation']
-    
+
     try:
       annotation = Annotation.objects.get(url_path=url)
       annotation.annotation_text = annotation_text
@@ -885,7 +887,7 @@ def create_annotation(request):
       annotation = Annotation(
           url_path=url, annotation_text=annotation_text)
       annotation.save()
-    
+
     return HttpResponseRedirect(url)
   except Exception, e:
     return HttpResponse(
@@ -903,15 +905,15 @@ def card(request, repo_base, repo, card_name):
   try:
     login = get_login(request)
     card = Card.objects.get(repo_base=repo_base, repo_name=repo, card_name=card_name)
-    query = card.query  
+    query = card.query
     manager = DataHubManager(user=repo_base)
     res = manager.execute_sql(
-        query='EXPLAIN %s' %(query))    
-    
+        query='EXPLAIN %s' %(query))
+
     limit = 50
-    
+
     num_rows = re.match(r'.*rows=(\d+).*', res['tuples'][0][0]).group(1)
-    count = int(num_rows)    
+    count = int(num_rows)
     total_pages = 1 + (int(count) / limit)
 
     current_page = 1
@@ -928,17 +930,17 @@ def card(request, repo_base, repo, card_name):
       start_page = 1
 
     end_page = start_page + 10
-    
+
     if end_page > total_pages:
       end_page = total_pages
-    
+
     # wrap query in another select statement, to allow the
-    # user's LIMIT statements to still work     
+    # user's LIMIT statements to still work
     db_query = 'select * from (' + query + ') as BXCQWVPEMWVKFBEBNKZSRPYBSB'
     db_query = '%s LIMIT %s OFFSET %s' %(db_query, limit, (current_page -1) * limit)
 
     res = manager.execute_sql(query=db_query)
-    
+
     column_names = [field['name'] for field in res['fields']]
     tuples = res['tuples']
 
@@ -968,7 +970,7 @@ def card(request, repo_base, repo, card_name):
         'pages': range(start_page, end_page + 1)}
 
     data.update(csrf(request))
-    return render_to_response("card-browse.html", data)    
+    return render_to_response("card-browse.html", data)
   except Exception, e:
     return HttpResponse(
         json.dumps(
@@ -977,14 +979,14 @@ def card(request, repo_base, repo, card_name):
 
 @login_required
 def card_create(request, repo_base, repo):
-  try:    
+  try:
     card_name = request.POST['card-name']
     query = request.POST['query']
     url = '/browse/%s/%s/card/%s' %(repo_base, repo, card_name)
 
     card = Card(
         repo_base=repo_base, repo_name=repo, card_name=card_name, query=query)
-    card.save()    
+    card.save()
     return HttpResponseRedirect(url)
   except Exception, e:
     return HttpResponse(
@@ -999,15 +1001,15 @@ def card_export(request, repo_base, repo, card_name):
     card = Card.objects.get(repo_base=repo_base, repo_name=repo, card_name=card_name)
     query = card.query
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'CREATE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
-    
+
     repo_dir = '/user_data/%s/%s' %(repo_base, repo)
-    
+
     if not os.path.exists(repo_dir):
       os.makedirs(repo_dir)
-    
+
     file_path = '%s/%s.csv' %(repo_dir, card_name)
     DataHubManager.export_query(
         repo_base=repo_base, query=query, file_path=file_path)
@@ -1020,10 +1022,10 @@ def card_export(request, repo_base, repo, card_name):
 
 @login_required
 def card_delete(request, repo_base, repo, card_name):
-  try:    
+  try:
     login = get_login(request)
     res = DataHubManager.has_repo_privilege(login, repo_base, repo, 'CREATE')
-    
+
     if not (res and res['tuples'][0][0]):
       raise Exception('Access denied. Missing required privileges.')
 
@@ -1052,7 +1054,7 @@ def apps (request):
     apps.append(
         {'app_id': app.app_id,
         'app_name': app.app_name,
-        'app_token': app.app_token, 
+        'app_token': app.app_token,
         'date_created': app.timestamp})
   print apps
   c = {
@@ -1073,7 +1075,7 @@ def app_register (request):
       app = App(
           app_id=app_id, app_name=app_name, user=user, app_token=app_token)
       app.save()
-  
+
       try:
         hashed_password = hashlib.sha1(app_token).hexdigest()
         DataHubManager.create_user(
@@ -1114,20 +1116,20 @@ def app_remove (request, app_id):
 @login_required
 def app_allow_access(request, app_id, repo_name):
   login = get_login(request)
-  try:  
+  try:
     app = None
     try:
       app = App.objects.get(app_id=app_id)
     except App.DoesNotExist:
       raise Exception("Invalid app_id")
-    
+
     app = App.objects.get(app_id=app_id)
 
     redirect_url = None
 
     if 'redirect_url' in request.REQUEST:
       redirect_url = request.REQUEST['redirect_url']
-    
+
     if request.method == "POST":
 
       access_val = request.POST['access_val']
@@ -1160,7 +1162,7 @@ def app_allow_access(request, app_id, repo_name):
 
       if 'redirect_url' in request.REQUEST:
         res['redirect_url'] = request.REQUEST['redirect_url']
-        
+
       res.update(csrf(request))
       return render_to_response('app-allow-access.html', res)
   except Exception, e:
@@ -1168,5 +1170,3 @@ def app_allow_access(request, app_id, repo_name):
         json.dumps(
           {'error': str(e)}),
         content_type="application/json")
-
-  
