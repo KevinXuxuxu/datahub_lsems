@@ -22,14 +22,14 @@
     <div class="table-responsive">
       <table class="table">
         <tbody>
-          {% for base_table in base_tables %}
+          {% for i in range(len(base_tables)) %}
           <tr>
             <td>
               <a href="/browse/{{repo_base}}/{{repo}}/result/{{base_table}}">{{base_table[0]}}</a>
             </td>
 
             <td class="text-right">
-                <a href="http://10.2.0.127:8888/{{repo_base}}/{{repo}}/commit/{{base_table[1]}}">
+                <a href="http://10.2.0.127:8888/{{repo_base}}/{{repo}}/commit/{{base_table[0]}}">
                 <span
                     class="modal-link modal-import-dialog"
                     target-file="{{code}}"
