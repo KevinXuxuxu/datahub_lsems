@@ -7,6 +7,7 @@ import re
 import sys
 import urllib
 import uuid
+import requests
 
 from django.core.context_processors import csrf
 from django.db.utils import IntegrityError
@@ -27,6 +28,7 @@ from datahub import DataHub
 from datahub.account import AccountService
 from service.handler import DataHubHandler
 from utils import *
+from inventory.models import *
 
 '''
 @author: Anant Bhardwaj
@@ -339,6 +341,9 @@ def repo_create(request, repo_base):
       repo = request.POST['repo']
       manager = DataHubManager(user=repo_base)
       manager.create_repo(repo)
+
+      private_key = User.objects.get(username=repo_base).private_key
+      requests.post("http://10.2.0.127:8888/api/v3/projects?private_token="+private_key, json={'name':repo, 'public':True})
 
       return HttpResponseRedirect('/browse/%s' %(repo_base))
 
