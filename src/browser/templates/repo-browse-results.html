@@ -22,10 +22,10 @@
     <div class="table-responsive">
       <table class="table">
         <tbody>
-          {% for i in range(len(base_tables)): %}
+          {% for base_table, commit_id in base_tables %}
           <tr>
             <td>
-              <a href="/browse/{{repo_base}}/{{repo}}/result/{{base_table}}">{{base_tables[i]}}</a>
+              <a href="/browse/{{repo_base}}/{{repo}}/result/{{base_table}}">{{base_table}}</a>
             </td>
 
             <td class="text-right">
@@ -61,7 +61,7 @@
               </span>&nbsp;&nbsp;
             </td>
           </tr>
-          {% end %}
+          {% endfor %}
 
           {% for view in views %}
           <tr>
