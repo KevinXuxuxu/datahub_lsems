@@ -1,9 +1,13 @@
 import os
-import psycopg2
+#import psycopg2
+import pymongo
+import asctime from time
 import re
 import shutil
+import data
 
 from config import settings
+from inventory.models import *
 
 '''
 @author: anant bhardwaj
@@ -12,191 +16,181 @@ from config import settings
 DataHub internal APIs for postgres repo_base
 '''
 HOST = settings.DATABASES['default']['HOST']
-PORT = 5432
+PORT = 27017
 
 if settings.DATABASES['default']['PORT'] != '':
-  try:
-    PORT = int(settings.DATABASES['default']['PORT'])
-  except:
-    pass
+    try:
+        PORT = int(settings.DATABASES['default']['PORT'])
+    except:
+        pass
 
-class PGBackend:
-  def __init__(self, user, password, host=HOST, port=PORT, repo_base=None):
-    self.user = user
-    self.password = password
-    self.host = host
-    self.port = port
-    self.repo_base = repo_base
+class MGBackend:
+    def __init__(self, user, password, host=HOST, port=PORT, repo_base=None):
+        self.user = user
+        self.password = password
+        self.host = host
+        self.port = port
+        self.repo_base = repo_base
 
-    self.__open_connection__()
+        self.__open_connection__()
 
-  def __open_connection__(self):    
-    self.connection = psycopg2.connect(
-        user=self.user,
-        password=self.password,
-        host=self.host,
-        port=self.port,
-        database=self.repo_base)
+    def __open_connection__(self):
+        self.connection = pymongo.MongoClient(host=self.host, port=self.port)
 
-    self.connection.set_isolation_level(
-        psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+    def reset_connection(self, repo_base):
+        self.repo_base=repo_base
+        self.__open_connection__()
 
-  def reset_connection(self, repo_base):
-    self.repo_base=repo_base
-    self.__open_connection__()
+    def close_connection(self):
+        self.connection.close()
 
-  def close_connection(self):    
-    self.connection.close()
+    def create_repo(self, repo):
+        try:
+            Repo = self.connection[repo]
+            Repo.create_collection('repo_info')
+            Repo['repo_info'].insert({'owner': self.user, 'time_created': asctime()})
+            Repo['repo_info'].insert({'tag':'collaborator'})
+            Repo.add_user(self.user, password=self.password)
+            return self.handle_return(True)
+        except Exception as e:
+            print e
+            return self.handle_return(False)
 
-  def create_repo(self, repo):
-    query = ''' CREATE SCHEMA IF NOT EXISTS %s AUTHORIZATION %s ''' %(repo, self.user)
-    return self.execute_sql(query)
+    def list_repos(self):
+        repo_list = self.connection.database_names()
+        rtn = []
+        for name in repo_list:
+            try:
+                if(self.connection[name].authenticate(self.name, password=self.password)):
+                    rtn += [name]
+            except Exception as e:
+                pass
+        return self.handle_return(rtn)
 
-  def list_repos(self):
-    query = ''' SELECT schema_name AS repo_name
-                FROM information_schema.schemata
-                WHERE schema_owner = '%s'
-            ''' %(self.user)
-    return self.execute_sql(query)
+    def delete_repo(self, repo, force=False):
+        repo_dir = '/user_data/%s/%s' %(self.user, repo)
+        if os.path.exists(repo_dir):
+            shutil.rmtree(repo_dir)
 
-  def delete_repo(self, repo, force=False):
-    repo_dir = '/user_data/%s/%s' %(self.user, repo)
-    if os.path.exists(repo_dir):
-      shutil.rmtree(repo_dir)
-    
-    query = ''' DROP SCHEMA %s %s
-            ''' %(repo, 'CASCADE' if force else '')
-    res = self.execute_sql(query)
-    return res
+        self.connection.drop_database(repo)
+        return self.handle_return(True)
 
-  def add_collaborator(self, repo, username, privileges, auto_in_future=True):
-    query = ''' GRANT USAGE ON SCHEMA %s TO %s;
-            ''' %(repo, username)
-    self.execute_sql(query)
-    
-    privileges_str = ', '.join(privileges)
-    
-    query = ''' GRANT %s ON ALL TABLES IN SCHEMA %s TO %s;
-            ''' %(privileges_str, repo, username)
-    self.execute_sql(query)
-    
-    query = ''' ALTER DEFAULT PRIVILEGES IN SCHEMA %s
-                GRANT %s ON TABLES TO %s;
-            ''' %(repo, privileges_str, username)
-    self.execute_sql(query)
+    def add_collaborator(self, repo, username, privileges, auto_in_future=True):
+        password = User.objects.get(username=username).password
+        Repo = self.connection[repo]
+        Repo.add_user(username,password=password)
+        coll = Repo['repo_info'].find_one({'tag':'collaborator'})
+        if coll.has_key('collaborator'):
+            coll['collaborator'].append(username)
+        else:
+            coll['collaborator'] = [username]
+        Repo['repo_info'].replace_one({'tag':'collaborator'}, coll)
 
-  def delete_collaborator(self, repo, username):
-    query = ''' REVOKE ALL ON ALL TABLES IN SCHEMA %s FROM %s CASCADE;
-            ''' %(repo, username)
-    self.execute_sql(query)
-    query = ''' REVOKE ALL ON SCHEMA %s FROM %s CASCADE;
-            ''' %(repo, username)
-    self.execute_sql(query)
-    query = ''' ALTER DEFAULT PRIVILEGES IN SCHEMA %s
-                REVOKE ALL ON TABLES FROM %s;
-            ''' %(repo, username)
-    self.execute_sql(query)
+    def delete_collaborator(self, repo, username):
+        self.connection[repo].remove_user(username)
 
-  def list_tables(self, repo):
-    res = self.list_repos()
+    def list_tables(self, repo):
+        res = self.list_repos()
 
-    all_repos = [t[0] for t in res['tuples']]
-    if repo not in all_repos:
-      raise LookupError('Invalid repository name: %s' %(repo))
+        all_repos = [t[0] for t in res['tuples']]
+        if repo not in all_repos:
+            raise LookupError('Invalid repository name: %s' %(repo))
 
-    query = ''' SELECT table_name FROM information_schema.tables
-                WHERE table_schema = '%s' AND table_type = 'BASE TABLE'
-            ''' %(repo)
-    return self.execute_sql(query)
+        rtn = self.connection[repo].collection_names()
+        return self.handle_return(rtn)
 
-  def list_views(self, repo):
-    res = self.list_repos()
+    def list_views(self, repo):
+        res = self.list_repos()
 
-    all_repos = [t[0] for t in res['tuples']]
-    if repo not in all_repos:
-      raise LookupError('Invalid repository name: %s' %(repo))
+        all_repos = [t[0] for t in res['tuples']]
+        if repo not in all_repos:
+            raise LookupError('Invalid repository name: %s' %(repo))
 
-    query = ''' SELECT table_name FROM information_schema.tables
+        query = ''' SELECT table_name FROM information_schema.tables
                 WHERE table_schema = '%s' AND table_type = 'VIEW'
-            ''' %(repo)
-    return self.execute_sql(query)
+                ''' %(repo)
+        return self.execute_sql(query)
 
-  def get_schema(self, table):
-    tokens = table.split('.')
-    
-    if len(tokens) < 2:
-      raise NameError(
-          "Invalid name: '%s'.\n"
-          "HINT: use <repo-name>.<table-name> " %(table))
-    
-    query = ''' SELECT column_name, data_type
-                FROM information_schema.columns
+    def get_schema(self, table):
+        tokens = table.split('.')
+
+        if len(tokens) < 2:
+            raise NameError(
+                "Invalid name: '%s'.\n"
+                "HINT: use <repo-name>.<table-name> " %(table))
+
+        query = ''' SELECT column_name, data_type
+                FROM information_schem a.columns
                 WHERE table_name = '%s'
                 AND table_schema = '%s'
             ''' %(tokens[-1], tokens[-2])
-    res = self.execute_sql(query)
-    
-    if res['row_count'] < 1:
-      raise NameError("Invalid reference: '%s'.\n" %(table))
+        res = self.execute_sql(query)
 
-    return res
+        if res['row_count'] < 1:
+            raise NameError("Invalid reference: '%s'.\n" %(table))
 
-  def execute_sql(self, query, params=None):
-    result = {
-        'status': False,
-        'row_count': 0,
-        'tuples': [],
-        'fields': []
-    }
+        return res
 
-    conn = self.connection 
-    c = conn.cursor()
-    c.execute(query.strip(), params)
+    def handle_return(self, param):
+        result = {
+            'status': True,
+            'row_count': 0,
+            'tuples': [],
+            'fields': []
+        }
 
-    try:
-      result['tuples'] = c.fetchall()
-    except:
-      pass
+        if type(param) == bool:
+            result['status'] = param
+        else if type(param) == list:
+            result['tuples'] = [[t,''] for t in param]
 
-    result['status'] = True
-    result['row_count'] = c.rowcount
-    if c.description:
-      result['fields'] = [
-          {'name': col[0], 'type': col[1]} for col in c.description]
+        #
+    # conn = self.connection
+    # c = conn.cursor()
+    # c.execute(query.strip(), params)
+    #
+    # try:
+    #   result['tuples'] = c.fetchall()
+    # except:
+    #   pass
+    #
+    # result['status'] = True
+    # result['row_count'] = c.rowcount
+    # if c.description:
+    #   result['fields'] = [
+    #       {'name': col[0], 'type': col[1]} for col in c.description]
+    #
+    # tokens = query.strip().split(' ', 2)
+    # c.close()
+        return result
 
-    tokens = query.strip().split(' ', 2)
-    c.close()
-    return result
+    def create_user(self, username, password, create_db):
+        users = self.connection['users']
+        users.create_collection(username)
+        users[username].insert({'username':username, 'password':password})
+        # if not create_db:
+        #   return
+        #
+        # query = ''' CREATE DATABASE %s ''' %(username)
+        # self.execute_sql(query)
+        #
+        # query = ''' ALTER DATABASE %s OWNER TO %s ''' %(username, username)
+        # return self.execute_sql(query)
+        return
 
-  def create_user(self, username, password, create_db):
-    query = ''' CREATE ROLE %s WITH LOGIN 
-                NOCREATEDB NOCREATEROLE NOCREATEUSER PASSWORD '%s'
-            ''' %(username, password)
-    self.execute_sql(query)
+    def remove_user(self, username):
+        users = self.connection['users']
+        users.drop_collection(username)
+        return handle_return(True)
 
-    if not create_db:
-      return   
+    def change_password(self, username, password):
+        user = self.connection['users'][username]
+        user_info = user.find_one({'username':username})
+        user_info['password'] = password
+        user.replace_one({'username':username}, user_info)
 
-    query = ''' CREATE DATABASE %s ''' %(username)
-    self.execute_sql(query)
-
-    query = ''' ALTER DATABASE %s OWNER TO %s ''' %(username, username)
-    return self.execute_sql(query)
-
-  def remove_user(self, username):
-    query = ''' DROP ROLE %s ''' %(username)
-    return self.execute_sql(query)
-
-  def change_password(self, username, password):
-    query = ''' ALTER ROLE %s WITH PASSWORD '%s'
-            ''' %(username, password)
-    return self.execute_sql(query)
-
-  def list_collaborators(self, repo_base, repo):
-    query = ''' SELECT unnest(nspacl) FROM
-                pg_namespace WHERE nspname='%s';
-            ''' %(repo)
-    return self.execute_sql(query)
+    def list_collaborators(self, repo_base, repo):
+        return handle_return(self.connection[repo]['repo_info'].find_one({'tag':'collaborator'})['collaborator'])
 
   def has_base_privilege(self, login, privilege):
     query = ''' SELECT has_database_privilege('%s', '%s')
@@ -244,7 +238,7 @@ class PGBackend:
       escape = ''
       if delimiter.startswith('\\'):
         escape = 'E'
-      
+
       return self.execute_sql(
           ''' COPY %s FROM '%s'
               WITH %s %s DELIMITER %s'%s' ENCODING '%s' QUOTE '%s';
@@ -273,7 +267,7 @@ class PGBackend:
       'password': self.password,
       'port': self.port,
     }
-    
+
     create_new = True
     errfile = None
 

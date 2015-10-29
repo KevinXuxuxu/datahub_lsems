@@ -1,7 +1,7 @@
 import psycopg2
 import re
 
-from backend.pg import PGBackend
+from backend.mg import MGBackend
 
 '''
 @author: anant bhardwaj
@@ -13,12 +13,12 @@ Any new backend must implement the DataHubConnection interface
 
 class DataHubConnection:
   def __init__(self, user, password, repo_base=None):
-    self.backend = PGBackend(user, password, repo_base=repo_base)
-  
+    self.backend = MGBackend(user, password, repo_base=repo_base)
+
   def reset_connection(self, repo_base):
     self.backend.reset_connection(repo_base=repo_base)
 
-  def close_connection(self):    
+  def close_connection(self):
     self.backend.close_connection()
 
   def create_repo(self, repo):
