@@ -224,6 +224,7 @@ def repo_results(request, repo_base, repo):
     # get base_tables for a given repo
     res = manager.list_tables(repo)
     base_tables = [t[0] for t in res['tuples'] if t[0].startswith('res')]
+    commit_ids = [t.split('_')[-1] for t in base_tables]
 
     # get views for a given repo
     res = manager.list_views(repo)
@@ -234,6 +235,7 @@ def repo_results(request, repo_base, repo):
         'repo_base': repo_base,
         'repo': repo,
         'base_tables': base_tables,
+        'commit_ids': commit_ids,
         'views': views}
 
     res.update(csrf(request))
