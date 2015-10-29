@@ -234,7 +234,7 @@ def repo_results(request, repo_base, repo):
         'login': get_login(request),
         'repo_base': repo_base,
         'repo': repo,
-        'base_tables': zip(base_tables, commit_ids)
+        'base_tables': zip(base_tables, commit_ids),
         'views': views}
 
     res.update(csrf(request))
