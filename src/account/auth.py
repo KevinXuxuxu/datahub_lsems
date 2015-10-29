@@ -33,7 +33,7 @@ kEmail = "SESSION_EMAIL"
 kUsername = "SESSION_USERNAME"
 
 # for async calls
-pool = Pool(processes=1)  
+pool = Pool(processes=1)
 
 '''
 LOGIN/REGISTER/RESET
@@ -50,8 +50,8 @@ def is_valid_username (username):
 
 def login_required (f):
   def wrap (request, *args, **kwargs):
-      if kEmail not in request.session.keys():        
-        redirect_url = urlquote_plus(request.get_full_path())        
+      if kEmail not in request.session.keys():
+        redirect_url = urlquote_plus(request.get_full_path())
         return HttpResponseRedirect("/account/login?redirect_url=%s" %(redirect_url))
       return f(request, *args, **kwargs)
   wrap.__doc__ = f.__doc__
@@ -86,12 +86,12 @@ def login (request):
     if('redirect_url' in request.POST.keys()):
       redirect_url = urllib.unquote_plus(request.POST['redirect_url'])
 
-    
-    email = None 
+
+    email = None
     try:
       login_id = request.POST["login_id"].lower()
       login_password = hashlib.sha1(request.POST["login_password"]).hexdigest()
-      
+
       # find the user email in the username, if it's there.
       try:
         validate_email(login_id.lower().strip())
@@ -129,12 +129,12 @@ def login (request):
                 urllib.quote_plus(redirect_url)))
       return login_form(
           request, redirect_url = urllib.quote_plus(redirect_url),
-          errors = errors) 
+          errors = errors)
     except:
       errors.append('Login failed.')
       return login_form(
           request, redirect_url = urllib.quote_plus(redirect_url),
-          errors = errors)          
+          errors = errors)
   else:
     try:
       if request.session[kUsername]:
@@ -161,13 +161,14 @@ def register (request):
       username = request.POST["username"].lower()
       email = request.POST["email"].lower()
       password = request.POST["password"]
-      
+      private_key = request.POST["private_key"]
+
       try:
         validate_email(email.strip())
       except:
         errors.append("Invalid Email.")
         error = True
-        
+
       if(not is_valid_username(username)):
         errors.append("Invalid Username.")
         error = True
@@ -199,7 +200,7 @@ def register (request):
       if(error):
         return register_form(request, redirect_url = urllib.quote_plus(redirect_url), errors = errors)
 
-      user = User(username=username, email=email, password=hashed_password)
+      user = User(username=username, email=email, password=hashed_password, private_key=private_key)
       user.save()
 
       clear_session(request)
@@ -213,7 +214,7 @@ def register (request):
       msg_body = '''
       Dear %s,
 
-      Thanks for registering to DataHub. 
+      Thanks for registering to DataHub.
 
       Please click the link below to start using DataHub:
 
@@ -222,7 +223,7 @@ def register (request):
       ''' % (
           user.email,
           'https' if request.is_secure() else 'http',
-          request.get_host(),          
+          request.get_host(),
           encrypted_email)
 
       pool.apply_async(send_email, [user.email, subject, msg_body])
@@ -254,7 +255,7 @@ def logout (request):
   c = {
     'msg_title': 'Thank you for using DataHub!',
     'msg_body': 'Your have been logged out.<br /><br /><a href="/account/login">Click Here</a> to sign in again.'
-  } 
+  }
   c.update(csrf(request))
   return render_to_response('confirmation.html', c)
 
@@ -280,7 +281,7 @@ def forgot (request):
       ''' % (
           user.email,
           'https' if request.is_secure() else 'http',
-          request.get_host(), 
+          request.get_host(),
           encrypted_email)
 
       pool.apply_async(send_email, [user_email, subject, msg_body])
@@ -288,7 +289,7 @@ def forgot (request):
       c = {
         'msg_title': 'DataHub Reset Password',
         'msg_body': 'A link to reset your password has been sent to your email address.'
-      } 
+      }
       c.update(csrf(request))
 
       return render_to_response('confirmation.html', c)
@@ -301,12 +302,12 @@ def forgot (request):
           'Error: %s.'
           'Please try again or send an email to '
           '<a href="mailto:datahub@csail.mit.edu">datahub@csail.mit.edu</a>.' %(str(e)))
-    
-    c = {'errors': errors, 'values': request.POST} 
+
+    c = {'errors': errors, 'values': request.POST}
     c.update(csrf(request))
     return render_to_response('forgot.html', c)
   else:
-    c = {'values': request.REQUEST} 
+    c = {'values': request.REQUEST}
     c.update(csrf(request))
     return render_to_response('forgot.html', c)
 
@@ -327,7 +328,7 @@ def verify (request, encrypted_email):
         'Wrong verify code in the URL. '
         'Please try again or send an email to '
         '<a href="mailto:datahub@csail.mit.edu">datahub@csail.mit.edu</a>')
-  
+
   c.update({'errors': errors})
   c.update(csrf(request))
   return render_to_response('confirmation.html', c)
@@ -383,7 +384,7 @@ def reset (request, encrypted_email):
           'msg_body': 'Your password has been changed successfully.<br /> <br />'
                       '<a href="/account/login" class="blue bold">Click Here</a>'
                       ' to sign in.'
-        } 
+        }
         c.update(csrf(request))
         return render_to_response('confirmation.html', c)
     except:
@@ -391,7 +392,7 @@ def reset (request, encrypted_email):
           'Some unknown error happened. '
           'Please try again or send an email to '
           '<a href="mailto:datahub@csail.mit.edu">datahub@csail.mit.edu</a>')
-      c = {'errors': errors} 
+      c = {'errors': errors}
       c.update(csrf(request))
       return render_to_response('reset.html', c)
   else:
@@ -409,8 +410,8 @@ def reset (request, encrypted_email):
           'Wrong reset code in the URL. '
           'Please try again or send an email to '
           '<a href="mailto:datahub@csail.mit.edu">datahub@csail.mit.edu</a>')
-    
-    c = {'msg_title': 'DataHub Reset Password', 'errors': errors} 
+
+    c = {'msg_title': 'DataHub Reset Password', 'errors': errors}
     c.update(csrf(request))
     return render_to_response('confirmation.html', c)
 

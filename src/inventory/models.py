@@ -15,7 +15,8 @@ class User (models.Model):
   l_name = models.CharField(max_length=50, null=True)
   password = models.CharField(max_length=50)
   active = models.BooleanField(default=False)
-  
+  private_key = models.CharField(max_length=50, null=True)
+
   def __unicode__ (self):
     return self.username
 
@@ -58,7 +59,7 @@ class DashboardCard (models.Model):
   timestamp = models.DateTimeField(auto_now=True)
   card = models.ForeignKey ('Card')
   dashboard = models.ForeignKey ('Dashboard')
-  
+
   def __unicode__ (self):
     return self.id
 
