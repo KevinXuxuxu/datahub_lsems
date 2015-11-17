@@ -29,22 +29,22 @@
         <input id="txt-sql" type="text" class="form-control" name="q" placeholder="Type SQL here">
       {% endif %}
     </div>
-    
+
     <div class="col-sm-2">
       <button class="btn btn-primary btn-xsm" type="submit">Run</button>
       <button class="btn btn-primary btn-xsm" id="btn-dataq">DataQ</button>
     </div>
-    
+
     </div>
   </form>
   <br />
-  
+
   {% block tabs %}
   {% endblock %}
-  
+
   <br />
 
-  <div class="panel panel-default">    
+  <div class="panel panel-default">
     <div class="panel-heading">
       {% block panel-title %}
       {% endblock %}
@@ -55,21 +55,21 @@
         {% else %}
           <span class="text-warning"><em>No description yet</em></span>&nbsp; &nbsp;<span class="modal-link annotation-modal-dialog" target-modal="#annotation-modal" title="Add Description" url-path="/browse/{{repo_base}}/{{repo}}/table/{{table}}"><span class="glyphicon glyphicon-edit"></span></span>
         {% endif %}
-      {% endblock %}  
-    </div>    
+      {% endblock %}
+    </div>
 
 
     <!-- Uncomment for sentiment analysis.
     <div class="dropdown sentiment-dropdown" style="margin: 10px 0 0 5px">
       <button class="btn btn-default dropdown-toggle" type="button" id="sentimentDropdown" data-toggle="dropdown" aria-expanded="true">
-        Run Sentiment Analysis 
+        Run Sentiment Analysis
         <span class="caret"></span>
       </button>
       <ul id="sentiment_col_list" class="dropdown-menu" role="menu" aria-labelledby="sentimentDropdown">
       </ul>
     </div>
     -->
-    
+
     {% if tuples and tuples|length > 0 %}
       {% block table-data %}
         <div class="table-responsive datahub-datatable-no-scroll table-container">
@@ -92,7 +92,7 @@
             {% for tuple in tuples %}
             <tr>
               {% for cell in tuple %}
-                <td class="strong">{{cell}}</td>
+                <td class="strong"><a href={{cell}}>{{cell}}</a></td>
               {% endfor %}
             </tr>
             {% endfor %}
@@ -106,11 +106,11 @@
       <p class="bg-warning">The <strong>{{table}}</strong> table is empty.</p>
       {% endblock %}
     {% endif %}
-  
+
   </div>
   <!-- Uncomment for sentiment analysis.
   <div class="alert alert-success" role="alert" id="alertbox" style="visibility: hidden">
-   _ 
+   _
   </div>
   -->
 </div>
@@ -132,7 +132,7 @@
             <input type="hidden" name="url" id="annotation-modal-input-url"/>
             <input type="text" class="form-control" name="annotation" placeholder="Enter text description" id="annotation-modal-input-annotation" />
           </div>
-        </form>      
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button"
@@ -149,18 +149,18 @@ $('.annotation-modal-dialog').on('click', function(e){
     var title = $(this).attr('title')
     var placeholder = $(this).attr('placeholder')
     var url_path = $(this).attr('url-path')
-    
+
     $(modal_id + '-title').text(title)
     $(modal_id + '-input-annotation').val(placeholder)
     $(modal_id + '-input-url').val(url_path)
 
     $(modal_id).off('click');
-    
+
     $(modal_id).modal({keyboard: true})
       .on('click', modal_id + '-operation', function (e) {
         $("#frm-annotation").submit()
         $(modal_id).modal('hide')
-        $("#wait-dialog").modal()  
+        $("#wait-dialog").modal()
       });
   });
 </script>
@@ -217,12 +217,12 @@ $('.annotation-modal-dialog').on('click', function(e){
   });
 </script>
 
-<script>    
-  $(document).on("click", "#btn-dataq", function(e) {    
-    e.preventDefault();    
-    DataQ.DQ("{{repo}}", function(query) {   
-      $("#txt-sql").val(query);    
-    });    
+<script>
+  $(document).on("click", "#btn-dataq", function(e) {
+    e.preventDefault();
+    DataQ.DQ("{{repo}}", function(query) {
+      $("#txt-sql").val(query);
+    });
   });
 </script>
 
