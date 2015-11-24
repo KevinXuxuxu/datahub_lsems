@@ -24,9 +24,21 @@
         <tbody>            
           {% for file in files %}
           <tr>
-            <td>
-              <a href="/download/{{repo_base}}/{{repo}}/file/{{file}}">{{file}}</a>
-            </td>
+
+            <% if file.endswith('.jpg'): %>
+              <td>
+                <a href="www.baidu.com">{{file}}</a>
+              </td>
+              <% end %>
+            <% else: %>
+              <td>
+                <a href="/download/{{repo_base}}/{{repo}}/file/{{file}}">{{file}}</a>
+              </td>
+              <% end %>
+
+{#            <td>#}
+{#              <a href="/download/{{repo_base}}/{{repo}}/file/{{file}}">{{file}}</a>#}
+{#            </td>#}
             
             <td class="text-right">
               <span
