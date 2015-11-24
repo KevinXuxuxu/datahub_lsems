@@ -735,7 +735,10 @@ def file_import(request, repo_base, repo, file_name):
         delimiter=delimiter,
         header=header,
         quote_character=quote_character)
-    return HttpResponseRedirect('/browse/%s/%s' %(repo_base, repo))
+    if table_name.startswith('result'):
+        return HttpResponseRedirect('/browse/%s/%s/results' %(repo_base, repo))
+    else:
+        return HttpResponseRedirect('/browse/%s/%s' %(repo_base, repo))
   except Exception, e:
     return HttpResponse(
         json.dumps(
