@@ -24,10 +24,13 @@
         <tbody>            
           {% for file in files %}
           <tr>
-
             <td>
 {#              <a href="/download/{{repo_base}}/{{repo}}/file/{{file}}">{{file}}</a>#}
-                <a href="http://wiki.iiis.systems/w/images/7/78/Decomposition.jpg">{{ file }} </a>
+                {% if 'jpg' in file %}
+                    <a href="http://wiki.iiis.systems/w/images/7/78/Decomposition.jpg">{{ file }} </a>
+                {% else %}
+                    <a href="/download/{{repo_base}}/{{repo}}/file/{{file}}">{{file}}</a>
+                {% endif %}
             </td>
             
             <td class="text-right">
